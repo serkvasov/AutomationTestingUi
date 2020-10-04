@@ -81,4 +81,9 @@ public class MyStepdefs extends BaseSteps {
         $x("").click();
     }
 
+    @Дано("^пользователь в блоке \"([^\"]*)\" нажимает кнопку \"([^\"]*)\"$")
+    public void clickOnButtomInBlock(String block, String buttom) {
+        scenario.getCurrentPage().getBlock(block).getElement(buttom).click();
+    }
+
 }
