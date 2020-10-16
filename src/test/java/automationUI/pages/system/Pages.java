@@ -15,7 +15,7 @@ public final class Pages {
     private BasePage currentPage;
 
     public Pages() {
-        pages = Maps.newHashMap();
+        pages = Maps.newConcurrentMap();
     }
 
     //Возвращает текущую страницу, на которой производится тестирование в текущий момент

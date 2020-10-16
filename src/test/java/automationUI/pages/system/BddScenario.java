@@ -9,17 +9,21 @@ import java.util.Arrays;
 import java.util.Set;
 
 public class BddScenario {
-    private static final BddScenario instance = new BddScenario();
-    private final Pages pages = new Pages();
+    private static final ThreadLocal<BddScenario> instance = new ThreadLocal<>();
+    private final Pages pages;
     private final String pagesPackage;
 
     private BddScenario() {
+        pages = new Pages();
         pagesPackage = TestConfig.getInstance().pageObjectsPackege();
         initPages();
     }
 
     public static BddScenario getInstance() {
-        return instance;
+        if(instance.get()==null){
+            instance.set(new BddScenario());
+        }
+        return instance.get();
     }
 
     public BasePage getCurrentPage() {
