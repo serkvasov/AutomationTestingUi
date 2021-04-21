@@ -19,6 +19,23 @@ import static java.util.stream.Collectors.toMap;
 
 public abstract class BasePage extends ElementsContainer {
     private Map<String, Object> namedElements;
+    private static BasePage castToBasePage(Object object) {
+        if (object instanceof BasePage) {
+            return (BasePage) object;
+        }
+        return null;
+    }
+
+    private Object extractFieldValue(Field field, Object owner) {
+        field.setAccessible(true);
+        try {
+            return field.get(owner);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } finally {
+            field.setAccessible(false);
+        }
+    }
 
     public abstract BasePage visiblityCheck();
 
@@ -100,29 +117,17 @@ public abstract class BasePage extends ElementsContainer {
         Set<String> duplications = list.stream().filter(i -> Collections.frequency(list, i) > 1).collect(Collectors.toSet());
         if (duplications.size() != 0) {
             String values = String.join(", ", duplications);
-            throw new IllegalArgumentException(String.format("Найдено несколько одинаковых аннотаций @NameOfElement(\"%s\") в классе %s", values, this.getClass().getName()));
+            throw new IllegalArgumentException(
+                    String.format("Найдено несколько одинаковых аннотаций @NameOfElement(\"%s\") в классе %s",
+                            values,
+                            this.getClass().getName()
+                    )
+            );
         }
-    }
-
-    private static BasePage castToBasePage(Object object) {
-        if (object instanceof BasePage) {
-            return (BasePage) object;
-        }
-        return null;
     }
 
     private Object extractFieldValueViaReflection(Field field) {
         return extractFieldValue(field, this);
     }
 
-    private Object extractFieldValue(Field field, Object owner) {
-        field.setAccessible(true);
-        try {
-            return field.get(owner);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        } finally {
-            field.setAccessible(false);
-        }
-    }
 }

@@ -5,6 +5,7 @@ import com.codeborne.selenide.Selenide;
 import com.google.common.collect.Maps;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 public final class Pages {
@@ -48,9 +49,9 @@ public final class Pages {
         try {
             Constructor<? extends BasePage> constructor = page.getDeclaredConstructor();
             constructor.setAccessible(true);
-            BasePage p = page.newInstance();
+            BasePage p = page.getDeclaredConstructor().newInstance();
             pages.put(pageName, p);
-        } catch (NoSuchMethodException | InstantiationException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+        } catch (NoSuchMethodException | InstantiationException | SecurityException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException("Ошибка при инициализации страницы " + pageName);
         }
     }

@@ -5,24 +5,38 @@ import automationUI.CustomWebDriverProvider;
 import automationUI.pages.system.config.ExecutionType;
 import automationUI.pages.system.config.RunType;
 import automationUI.pages.system.config.TestConfig;
-import com.codeborne.selenide.Configuration;
-import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.WebDriverRunner;
+import com.codeborne.selenide.*;
 import com.codeborne.selenide.logevents.SelenideLogger;
+import com.github.kklisura.cdt.protocol.commands.Network;
+import com.github.kklisura.cdt.protocol.types.network.Response;
+import com.github.kklisura.cdt.services.ChromeDevToolsService;
+import com.github.kklisura.cdt.services.ChromeService;
+import com.github.kklisura.cdt.services.impl.ChromeServiceImpl;
+import com.github.kklisura.cdt.services.types.ChromeTab;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.qameta.allure.selenide.AllureSelenide;
+import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static java.nio.channels.Selector.open;
 
 
 public class Hooks {
     private final Logger LOG = LoggerFactory.getLogger(Hooks.class);
     private static final String ALLURE_LISTENER = "AllureSelenide";
-
+    RemoteWebDriver driver;
+    ChromeDevToolsService cdpService;
+    static List<ResponseInfo> responses;
 
     @Before
     public void SetUp() {
@@ -37,14 +51,33 @@ public class Hooks {
             Selenide.closeWebDriver();
         }
     }
+    static class ResponseInfo {
+        final String url;
+        final int status;
+
+        ResponseInfo(String url, int status) {
+            this.url = url;
+            this.status = status;
+        }
+
+        public String toString() {
+            return String.format("%s -> %s", url, status);
+        }
+    }
 
 
     public void setUpSelenide() {
         SelenideLogger.addListener(ALLURE_LISTENER, new AllureSelenide().screenshots(true).savePageSource(false));
+        //Подсветка элементов на веб странице. Разблокировать для включения.
+//        WebDriverRunner.addListener(new Highlighter());
         ExecutionType executionType = TestConfig.getInstance().executionType();
         if (executionType == ExecutionType.PARALLEL) {
             Configuration.browser = CustomWebDriverProvider.class.getName();
         }
+        Configuration.fileDownload = FileDownloadMode.PROXY;
+        Configuration.proxyEnabled = true;
+
+
         Configuration.reportsFolder = TestConfig.getInstance().reportFolder();
         Configuration.timeout = TestConfig.getInstance().timeout();
         Configuration.baseUrl = TestConfig.getInstance().googleUrl();
@@ -52,6 +85,29 @@ public class Hooks {
 //        Configuration.headless = true;
         Configuration.browser = TestConfig.getInstance().browserType().name().toLowerCase();
         RunType env = TestConfig.getInstance().runType();
+
+        //настройка ChromeDevTools
+        try {
+            open();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        driver = (RemoteWebDriver) WebDriverRunner.getWebDriver();
+        Capabilities caps = driver.getCapabilities();
+        String debuggerAddress = (String) ((Map<String, Object>) caps.getCapability("goog:chromeOptions")).get("debuggerAddress");
+        int debuggerPort = Integer.parseInt(debuggerAddress.split(":")[1]);
+
+        ChromeService chromeService = new ChromeServiceImpl(debuggerPort);
+        ChromeTab pageTab = chromeService.getTabs().stream().filter(tab -> tab.getType().equals("page")).findFirst().get();
+        cdpService = chromeService.createDevToolsService(pageTab);
+        responses = new ArrayList<>();
+        Network network = cdpService.getNetwork();
+        network.onResponseReceived(event -> {
+            Response res = event.getResponse();
+            responses.add(new ResponseInfo(res.getUrl(), res.getStatus()));
+        });
+        network.enable();
+
         switch (env) {
             case REMOTE:
                 String proj = "automationUI" + LocalDateTime.now().toString();

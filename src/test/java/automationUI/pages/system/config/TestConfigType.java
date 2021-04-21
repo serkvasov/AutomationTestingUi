@@ -2,9 +2,9 @@ package automationUI.pages.system.config;
 
 
 import org.aeonbits.owner.Config;
-
+@Config.LoadPolicy(Config.LoadType.MERGE)
 @Config.Sources({
-        "classpath:${DSConfigFile",
+        "classpath:${DSConfigFile}",
         "classpath:config/app.properties",
         "system:properties",
         "system:env"
@@ -21,6 +21,12 @@ public interface TestConfigType extends Config {
     @Key("selenide.browser")
     @DefaultValue("Chrome")
     BrowserType browserType();
+
+    @Key("users.path")
+    String getUsersPath();
+
+    @Key("clients.path")
+    String getClientsPath();
 
     @Key("selenide.browserVersion")
     @DefaultValue("41")

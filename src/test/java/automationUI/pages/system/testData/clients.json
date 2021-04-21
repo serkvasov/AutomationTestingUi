@@ -1,0 +1,22 @@
+{
+  "clients": [
+    {
+      "role": "client1",
+      "name": "client1",
+      "lastname": "client1",
+      "male": "client1"
+    },
+    {
+      "role": "client2",
+      "name": "client2",
+      "lastname": "client2",
+      "male": "client2"
+    },
+    {
+      "role": "client3",
+      "name": "client3",
+      "lastname": "client3",
+      "male": "client3"
+    }
+  ]
+}
