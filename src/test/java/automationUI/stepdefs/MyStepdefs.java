@@ -5,10 +5,13 @@ import automationUI.pages.BasePage;
 import static automationUI.stepdefs.Hooks.responses;
 
 import automationUI.pages.system.BaseSteps;
+import automationUI.pages.system.Stash;
 import automationUI.pages.system.anotations.PageEntry;
 import automationUI.pages.system.config.TestConfig;
-import automationUI.pages.system.testData.ClientsData;
+import automationUI.pages.system.testDataApi.ClientsData;
 import com.browserup.harreader.model.HarEntry;
+import com.codeborne.selenide.CollectionCondition;
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.proxy.SelenideProxyServer;
 import io.cucumber.datatable.DataTable;
@@ -26,6 +29,7 @@ import java.util.Map;
 import static com.codeborne.selenide.Selenide.$x;
 import static com.codeborne.selenide.WebDriverRunner.getSelenideProxy;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
+import static org.openqa.selenium.Keys.ENTER;
 
 public class MyStepdefs extends BaseSteps {
     private static final Logger LOG = LoggerFactory.getLogger(MyStepdefs.class);
@@ -72,10 +76,37 @@ public class MyStepdefs extends BaseSteps {
         LOG.info("СТраница открыта " + pageName);
     }
 
-
     @Дано("^пользователь в поле \"([^\"]*)\" вводит значение \"([^\"]*)\"$")
     public void search(String elem, String val) {
         scenario.getCurrentPage().getElement(elem).sendKeys(val);
+    }
+
+    @Дано("^кликает по значению \"([^\"]*)\"$")
+    public void clickOnPage(String value) {
+        Selenide.$x("(//a[@href='https://www.ozon.ru/'])[1]").click();
+//        scenario.getCurrentPage().getElement(value).click();
+
+    }
+
+    @Дано("^проверяет, что на странице содержится текст \"([^\"]*)\"$")
+    public void findTextOnPage(String text) {
+        if(text.contains("\'")){
+            text = text.replace("\\'","\"");
+        }
+        Selenide.$x("//*[contains(text(),'" + text + "')]").shouldBe(Condition.exist);
+    }
+    @Дано("^проверяет отсутствие текста \"([^\"]*)\"$")
+    public void thereIsNoText(String text) {
+        if(text.contains("\'")){
+            text = text.replace("\\'","\"");
+        }
+        Selenide.$x("//*[contains(text(),'" + text + "')]").shouldNotBe(Condition.exist);
+    }
+
+    @Дано("^пользователь в поле \"([^\"]*)\" вводит значение \"([^\"]*)\" и нажимает Enter$")
+    public void searchAndPressEnter(String elem, String val) {
+        scenario.getCurrentPage().getElement(elem).setValue(val).pressEnter();
+//        Selenide.actions().sendKeys(ENTER);
     }
 
     @Дано("^пользователь ждет \"([^\"]*)\" секунд$")
@@ -83,9 +114,14 @@ public class MyStepdefs extends BaseSteps {
         Selenide.sleep(Integer.parseInt(seconds) * 1000);
     }
 
-    @Дано("^пользователь нажимает кнопку \"([^\"]*)\"$")
+    @Дано("^пользователь нажимает (?:кнопку|элемент) \"([^\"]*)\"$")
     public void clickButton(String buttonName) {
         scenario.getCurrentPage().getElement(buttonName).click();
+    }
+
+    @Дано("^во всплывающем окне Удаление товаров нажимает кнопку Удалить$")
+    public void clickDeleteButtonInCartOzon() {
+        $x("//*[@qa-id=\"checkcart-confirm-modal-confirm-button\"]/button").click();
     }
 
     @Дано("^пользователь переходит по строке \"([^\"]*)\"$")
@@ -113,11 +149,16 @@ public class MyStepdefs extends BaseSteps {
         responses.stream().filter(res -> res.status != 200).forEach(System.out::println);
     }
 
-    @Дано("^пользователь берет параметр клиента \"([^\"]*)\" из файла JSON$")
-    public String getParamFromJSON(String param) {
+    @Дано("^пользователь сохраняет данные в Stash: key \"([^\"]*)\" value \"([^\"]*)\"$")
+    public void savaIntoStash(String key, String value) {
+        Stash.put(key, value);
+    }
+
+    @Дано("^пользователь берет значение \"([^\"]*)\" клиента \"([^\"]*)\" из файла JSON$")
+    public String getParamFromJSON(String param, String client) {
         String value = param;
         ClientsData clientsData = new ClientsData();
-        String role = "client1";
+        String role = clientsData.returnClient(client).getClientRole();
         Method method;
         try {
             method = clientsData.returnClient(role).getClass().getMethod(param);
@@ -125,6 +166,7 @@ public class MyStepdefs extends BaseSteps {
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
+        LOG.info("параметр клиента из файла JSON - " + value);
         return value;
     }
 

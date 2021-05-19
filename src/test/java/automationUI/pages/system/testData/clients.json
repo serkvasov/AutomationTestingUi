@@ -2,21 +2,21 @@
   "clients": [
     {
       "role": "client1",
-      "name": "client1",
-      "lastname": "client1",
-      "male": "client1"
+      "name": "Василий",
+      "lastname": "Петров",
+      "gender": "мужской"
     },
     {
       "role": "client2",
-      "name": "client2",
-      "lastname": "client2",
-      "male": "client2"
+      "name": "Ирина",
+      "lastname": "Смирнова",
+      "gender": "женский"
     },
     {
       "role": "client3",
-      "name": "client3",
-      "lastname": "client3",
-      "male": "client3"
+      "name": "Фея",
+      "lastname": "Крестная",
+      "gender": "гендерно-нейтральный"
     }
   ]
 }

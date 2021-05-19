@@ -28,8 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static java.nio.channels.Selector.open;
-
 
 public class Hooks {
     private final Logger LOG = LoggerFactory.getLogger(Hooks.class);
@@ -39,7 +37,7 @@ public class Hooks {
     static List<ResponseInfo> responses;
 
     @Before
-    public void SetUp() {
+    public void SetUp() throws IOException {
         setUpSelenide();
     }
 
@@ -51,6 +49,7 @@ public class Hooks {
             Selenide.closeWebDriver();
         }
     }
+
     static class ResponseInfo {
         final String url;
         final int status;
@@ -66,7 +65,8 @@ public class Hooks {
     }
 
 
-    public void setUpSelenide() {
+    public void setUpSelenide() throws IOException {
+        System.setProperty("webdriver.chrome.driver", TestConfig.getInstance().driverPath());
         SelenideLogger.addListener(ALLURE_LISTENER, new AllureSelenide().screenshots(true).savePageSource(false));
         //Подсветка элементов на веб странице. Разблокировать для включения.
 //        WebDriverRunner.addListener(new Highlighter());
@@ -74,24 +74,19 @@ public class Hooks {
         if (executionType == ExecutionType.PARALLEL) {
             Configuration.browser = CustomWebDriverProvider.class.getName();
         }
-        Configuration.fileDownload = FileDownloadMode.PROXY;
         Configuration.proxyEnabled = true;
-
 
         Configuration.reportsFolder = TestConfig.getInstance().reportFolder();
         Configuration.timeout = TestConfig.getInstance().timeout();
-        Configuration.baseUrl = TestConfig.getInstance().googleUrl();
+//        Configuration.baseUrl = TestConfig.getInstance().googleUrl();
         Configuration.startMaximized = true;
 //        Configuration.headless = true;
         Configuration.browser = TestConfig.getInstance().browserType().name().toLowerCase();
         RunType env = TestConfig.getInstance().runType();
 
         //настройка ChromeDevTools
-        try {
-            open();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Selenide.open();
+        LOG.info("sd vjhsjdhvkj kdjvnkd");
         driver = (RemoteWebDriver) WebDriverRunner.getWebDriver();
         Capabilities caps = driver.getCapabilities();
         String debuggerAddress = (String) ((Map<String, Object>) caps.getCapability("goog:chromeOptions")).get("debuggerAddress");
@@ -122,7 +117,7 @@ public class Hooks {
                 break;
 
             case LOCAL:
-//                WebDriverManager скачает сам драйвера. Если нет, то расскрментировать.
+//                WebDriverManager скачает сам драйвера. Если нет, то раскоментировать.
 //                if (TestConfig.getInstance().browserType() == BrowserType.CHROME) {
 //                    System.setProperty("webdriver.chrome.driver", TestConfig.getInstance().driverPath());
 //                } else if (

@@ -68,5 +68,4 @@ public interface TestConfigType extends Config {
     @Key("pages.package")
     @DefaultValue("automationUI")
     String pageObjectsPackege();
-
 }
