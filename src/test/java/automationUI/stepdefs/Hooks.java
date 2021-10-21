@@ -32,9 +32,9 @@ import java.util.Map;
 public class Hooks {
     private final Logger LOG = LoggerFactory.getLogger(Hooks.class);
     private static final String ALLURE_LISTENER = "AllureSelenide";
-    RemoteWebDriver driver;
-    ChromeDevToolsService cdpService;
-    static List<ResponseInfo> responses;
+//    RemoteWebDriver driver;
+//    ChromeDevToolsService cdpService;
+//    static List<ResponseInfo> responses;
 
     @Before
     public void SetUp() throws IOException {
@@ -50,22 +50,22 @@ public class Hooks {
         }
     }
 
-    static class ResponseInfo {
-        final String url;
-        final int status;
+//    static class ResponseInfo {
+//        final String url;
+//        final int status;
+//
+//        ResponseInfo(String url, int status) {
+//            this.url = url;
+//            this.status = status;
+//        }
+//
+//        public String toString() {
+//            return String.format("%s -> %s", url, status);
+//        }
+//    }
 
-        ResponseInfo(String url, int status) {
-            this.url = url;
-            this.status = status;
-        }
 
-        public String toString() {
-            return String.format("%s -> %s", url, status);
-        }
-    }
-
-
-    public void setUpSelenide() throws IOException {
+    public void setUpSelenide() {
         System.setProperty("webdriver.chrome.driver", TestConfig.getInstance().driverPath());
         SelenideLogger.addListener(ALLURE_LISTENER, new AllureSelenide().screenshots(true).savePageSource(false));
         //Подсветка элементов на веб странице. Разблокировать для включения.
@@ -74,7 +74,7 @@ public class Hooks {
         if (executionType == ExecutionType.PARALLEL) {
             Configuration.browser = CustomWebDriverProvider.class.getName();
         }
-        Configuration.proxyEnabled = true;
+//        Configuration.proxyEnabled = true;
 
         Configuration.reportsFolder = TestConfig.getInstance().reportFolder();
         Configuration.timeout = TestConfig.getInstance().timeout();
@@ -85,33 +85,38 @@ public class Hooks {
         RunType env = TestConfig.getInstance().runType();
 
         //настройка ChromeDevTools
-        Selenide.open();
-        LOG.info("sd vjhsjdhvkj kdjvnkd");
-        driver = (RemoteWebDriver) WebDriverRunner.getWebDriver();
-        Capabilities caps = driver.getCapabilities();
-        String debuggerAddress = (String) ((Map<String, Object>) caps.getCapability("goog:chromeOptions")).get("debuggerAddress");
-        int debuggerPort = Integer.parseInt(debuggerAddress.split(":")[1]);
-
-        ChromeService chromeService = new ChromeServiceImpl(debuggerPort);
-        ChromeTab pageTab = chromeService.getTabs().stream().filter(tab -> tab.getType().equals("page")).findFirst().get();
-        cdpService = chromeService.createDevToolsService(pageTab);
-        responses = new ArrayList<>();
-        Network network = cdpService.getNetwork();
-        network.onResponseReceived(event -> {
-            Response res = event.getResponse();
-            responses.add(new ResponseInfo(res.getUrl(), res.getStatus()));
-        });
-        network.enable();
+//        Selenide.open();
+//        driver = (RemoteWebDriver) WebDriverRunner.getWebDriver();
+//        Capabilities caps = driver.getCapabilities();
+//        String debuggerAddress = (String) ((Map<String, Object>) caps.getCapability("goog:chromeOptions")).get("debuggerAddress");
+//        int debuggerPort = Integer.parseInt(debuggerAddress.split(":")[1]);
+//
+//        ChromeService chromeService = new ChromeServiceImpl(debuggerPort);
+//        ChromeTab pageTab = chromeService.getTabs().stream().filter(tab -> tab.getType().equals("page")).findFirst().get();
+//        cdpService = chromeService.createDevToolsService(pageTab);
+//        responses = new ArrayList<>();
+//        Network network = cdpService.getNetwork();
+//        network.onResponseReceived(event -> {
+//            Response res = event.getResponse();
+//            responses.add(new ResponseInfo(res.getUrl(), res.getStatus()));
+//        });
+//        network.enable();
 
         switch (env) {
             case REMOTE:
                 String proj = "automationUI" + LocalDateTime.now().toString();
                 DesiredCapabilities capabilities = new DesiredCapabilities();
+                Configuration.browserSize = TestConfig.getInstance().browserSize();
+
                 Configuration.browserCapabilities = capabilities;
-                capabilities.setCapability("enableVNC", true);
-                capabilities.setCapability("enableVideo", true);
+
                 capabilities.setCapability("name", proj);
-                capabilities.setVersion(TestConfig.getInstance().browserVersion());
+                capabilities.setBrowserName("chrome");
+                capabilities.setVersion("83.0");
+                capabilities.setCapability("enableVNC", true);
+                capabilities.setCapability("enableVideo", false);
+                capabilities.acceptInsecureCerts();
+
                 Configuration.remote = TestConfig.getInstance().remoteHubUrl();
                 Configuration.browserCapabilities = capabilities;
                 break;

@@ -11,7 +11,6 @@ import org.aeonbits.owner.Config;
 })
 public interface TestConfigType extends Config {
     @Key("run.type")
-    @DefaultValue("local")
     RunType runType();
 
     @Key("run.execute")
@@ -33,7 +32,6 @@ public interface TestConfigType extends Config {
     String browserVersion();
 
     @Key("selenide.remote")
-    @DefaultValue("http://lacalhost:4444/wd/hub")
     String remoteHubUrl();
 
     @Key("selenide.reportsFolder")
@@ -41,7 +39,6 @@ public interface TestConfigType extends Config {
     String reportFolder();
 
     @Key("selenide.path.driver")
-    @DefaultValue("src/test/resources/webdriver/chromedriver.exe")
     String driverPath();
 
     @Key("selenide.timeout")

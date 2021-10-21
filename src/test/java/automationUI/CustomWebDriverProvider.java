@@ -15,11 +15,10 @@ import java.time.LocalDateTime;
 public class CustomWebDriverProvider implements WebDriverProvider {
     @Override
     public WebDriver createDriver(DesiredCapabilities capabilities) {
-//        org.apache.log4j.PropertyConfigurator.configure("src/test/resources/config/log4j.properties");
         Configuration.reportsFolder = TestConfig.getInstance().reportFolder();
         Configuration.timeout = TestConfig.getInstance().timeout();
         Configuration.browserSize = TestConfig.getInstance().browserSize();
-        Configuration.startMaximized = true;
+//        Configuration.startMaximized = true;
         capabilities.setBrowserName(TestConfig.getInstance().browserType().name().toLowerCase());
         capabilities.setVersion(TestConfig.getInstance().browserVersion());
         capabilities.setCapability("name", getSessioName());

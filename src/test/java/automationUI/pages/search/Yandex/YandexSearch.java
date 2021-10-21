@@ -18,9 +18,6 @@ public class YandexSearch extends BasePage {
 
     @NameOfElement(value = "Строка поиска")
     public SelenideElement poisk4165 = $x("//input[@aria-label=\"Запрос\"]");
-//
-//    @NameOfElement(value = "Найти")
-//    public SelenideElement search4985165 = $x("//button[@type=\"submit\"]");
 
     public BasePage visiblityCheck() {
         $x("//link[@title='Яндекс']").shouldBe(Condition.exist);

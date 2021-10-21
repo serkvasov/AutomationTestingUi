@@ -2,7 +2,7 @@ package automationUI.stepdefs;
 
 import automationUI.pages.BasePage;
 
-import static automationUI.stepdefs.Hooks.responses;
+//import static automationUI.stepdefs.Hooks.responses;
 
 import automationUI.pages.system.BaseSteps;
 import automationUI.pages.system.Stash;
@@ -17,6 +17,7 @@ import com.codeborne.selenide.proxy.SelenideProxyServer;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.ru.Дано;
 import io.cucumber.java.ru.Тогда;
+import io.restassured.RestAssured;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,20 @@ import static org.openqa.selenium.Keys.ENTER;
 
 public class MyStepdefs extends BaseSteps {
     private static final Logger LOG = LoggerFactory.getLogger(MyStepdefs.class);
+
+
+    @Дано("^выполнение метода /routes$")
+    public void exampleRestAssured() {
+        RestAssured.when().get("https://ae51-93-92-200-184.ngrok.io/routes").then().assertThat().statusCode(200);
+        List<Integer> sourceList = RestAssured.when().get("https://ae51-93-92-200-184.ngrok.io/routes").jsonPath().get("number");
+        String sourceList1 = RestAssured.when().get("https://ae51-93-92-200-184.ngrok.io/routes").asPrettyString();
+        System.out.println("sourceList1"+sourceList1);
+        Integer[] targetArray = sourceList.toArray(new Integer[4]);
+        Integer[] i = {100, 102, 999, 300};
+        Assert.assertArrayEquals(i,targetArray);
+        System.out.println(targetArray);
+    }
+
 
 
     @Дано("^открытие поисковика \"([^\"]*)\"$")
@@ -144,10 +159,10 @@ public class MyStepdefs extends BaseSteps {
         }
     }
 
-    @Дано("^пользователь получает логи Network с помощью ChromeDevTools$")
-    public void getNetworkByChromeDevTools() {
-        responses.stream().filter(res -> res.status != 200).forEach(System.out::println);
-    }
+//    @Дано("^пользователь получает логи Network с помощью ChromeDevTools$")
+//    public void getNetworkByChromeDevTools() {
+//        responses.stream().filter(res -> res.status != 200).forEach(System.out::println);
+//    }
 
     @Дано("^пользователь сохраняет данные в Stash: key \"([^\"]*)\" value \"([^\"]*)\"$")
     public void savaIntoStash(String key, String value) {

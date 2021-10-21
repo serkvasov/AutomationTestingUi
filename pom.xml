@@ -12,6 +12,8 @@
         <aspectj.version>1.8.10</aspectj.version>
         <java-version>11</java-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <system.threads>1</system.threads>
+
     </properties>
 
 
@@ -39,7 +41,7 @@
                         <configuration>
                             <parallel>methods</parallel>
                             <reuseForks>false</reuseForks>
-                            <threadCount>5</threadCount>
+                            <threadCount>${system.threads}</threadCount>
                             <perCoreThreadCount>false</perCoreThreadCount>
                             <includes>
                                 <include>**/runners/**.java</include>
@@ -78,9 +80,6 @@
         </profile>
             <profile>
             <id>parallel</id>
-            <activation>
-                    <activeByDefault>true</activeByDefault>
-            </activation>
             <properties>
                 <system.threads>2</system.threads>
             </properties>
@@ -89,9 +88,15 @@
 
     <dependencies>
         <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>4.4.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.codeborne</groupId>
             <artifactId>selenide</artifactId>
-            <version>5.15.1</version>
+            <version>5.25.0</version>
         </dependency>
         <dependency>
             <groupId>com.browserup</groupId>
