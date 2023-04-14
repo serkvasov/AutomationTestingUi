@@ -17,6 +17,9 @@ public class ResultsGoogleSearch extends BasePage {
     @NameOfElement(value = "Строка поиска")
     public SelenideElement poisk615 = $x("//input[@title=\"Поиск\"");
 
+    @NameOfElement(value = "Первый результат в поиске")
+    public SelenideElement element = $x("(//h3)[1]");
+
 
     public BasePage visiblityCheck() {
         $(By.id("searchform")).shouldBe(Condition.exist);

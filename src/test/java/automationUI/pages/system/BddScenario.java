@@ -1,60 +1,72 @@
 package automationUI.pages.system;
 
 import automationUI.pages.BasePage;
-import automationUI.pages.system.anotations.PageEntry;
-import automationUI.pages.system.config.TestConfig;
 import com.codeborne.selenide.Selenide;
+import io.cucumber.java.Scenario;
 
-import java.util.Arrays;
-import java.util.Set;
+public enum BddScenario {
+    INSTANCE;
 
-public class BddScenario {
-    private static final ThreadLocal<BddScenario> instance = new ThreadLocal<>();
-    private final Pages pages;
-    private final String pagesPackage;
-
-    private BddScenario() {
-        pages = new Pages();
-        pagesPackage = TestConfig.getInstance().pageObjectsPackege();
-        initPages();
-    }
-
-    public static BddScenario getInstance() {
-        if(instance.get()==null){
-            instance.set(new BddScenario());
-        }
-        return instance.get();
-    }
+    private final BddEnvironment environment = new BddEnvironment();
+    private final String CURRENT_PAGE = "CURRENT_PAGE";
 
     public BasePage getCurrentPage() {
-        return pages.getCurrentPage();
+        return getVar(CURRENT_PAGE);
     }
 
     public void setCurrentPage(BasePage page) {
-        if (page == null) {
-            throw new IllegalArgumentException("Происходит переход на несуществующую страницу. " +
-                    "Проверьте аннотации @PageEntry у используемых страниц");
-        }
-        pages.setCurrentPage(page);
+        setVar(CURRENT_PAGE, page);
     }
 
-    public BasePage get(String pageName) {
-        return Selenide.page(pages.get(pageName)).visiblityCheck();
+    public Scenario getScenario() {
+        return environment.getScenario();
     }
 
-    private void initPages() {
-        Set<Class<?>> classes = new AnnotationScanner(pagesPackage).getClassesAnnotateWith(PageEntry.class);
-        classes.stream().map(it -> {
-            if (BasePage.class.isAssignableFrom(it)) {
-                return (Class<? extends BasePage>) it;
-            } else {
-                throw new IllegalStateException("Класс " + it.getName() + " должен наследоваться от BasePage");
-            }
-        }).forEach(clazz -> pages.put(getClassAnnotationValue(clazz), clazz));
+    /**
+     * Получение списка страниц
+     */
+    public Pages getPages() {
+        return this.environment.getPages();
     }
 
-    private String getClassAnnotationValue(Class<?> clazz) {
-        return Arrays.stream(clazz.getAnnotationsByType(PageEntry.class)).findAny().map(PageEntry::title)
-                .orElseThrow(() -> new AssertionError("Не найдены аннотации BasePage.NameOfElement в классе " + clazz.getName()));
+    public BasePage getPage(String name) {
+        return Selenide.page(environment.getPage(name));
+    }
+
+
+    /**
+     * Получение страницы по классу (проверка отображения элементов страницы не выполняется)
+     *
+     * @param clazz - класс страницы, которую необходимо получить
+     */
+    public <T extends BasePage> T getPage(Class<T> clazz) {
+        return Pages.getPage(clazz, true);
+    }
+
+    /**
+     * Получение страницы по классу и имени (оба параметра должны совпадать)
+     *
+     * @param clazz - класс страницы, которую необходимо получить
+     * @param name  - название страницы, заданное в аннотации @Name
+     */
+    public <T extends BasePage> T getPage(Class<T> clazz, String name) {
+        return environment.getPage(clazz, name);
+    }
+
+    public <T> T getVar(String name) {
+        return (T) environment.getValue(name);
+    }
+
+    public void setVar(String name, Object object) {
+        environment.put(name, object);
+    }
+
+    /**
+     * Получение всех переменных из пула "variables" в классе AkitaEnvironment
+     */
+    public Stash getVars() {
+        return environment.getVars();
     }
 }
+
+

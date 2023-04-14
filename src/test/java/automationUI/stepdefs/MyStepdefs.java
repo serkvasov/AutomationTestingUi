@@ -1,16 +1,11 @@
 package automationUI.stepdefs;
 
 import automationUI.pages.BasePage;
-
-//import static automationUI.stepdefs.Hooks.responses;
-
 import automationUI.pages.system.BaseSteps;
-import automationUI.pages.system.Stash;
 import automationUI.pages.system.anotations.PageEntry;
 import automationUI.pages.system.config.TestConfig;
 import automationUI.pages.system.testDataApi.ClientsData;
 import com.browserup.harreader.model.HarEntry;
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.proxy.SelenideProxyServer;
@@ -18,6 +13,7 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.ru.Дано;
 import io.cucumber.java.ru.Тогда;
 import io.restassured.RestAssured;
+import io.restassured.response.Response;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,24 +26,46 @@ import java.util.Map;
 import static com.codeborne.selenide.Selenide.$x;
 import static com.codeborne.selenide.WebDriverRunner.getSelenideProxy;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
-import static org.openqa.selenium.Keys.ENTER;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItems;
 
 public class MyStepdefs extends BaseSteps {
     private static final Logger LOG = LoggerFactory.getLogger(MyStepdefs.class);
 
 
-    @Дано("^выполнение метода /routes$")
+    @Дано("^выполнение метода GET Users$")
     public void exampleRestAssured() {
-        RestAssured.when().get("https://ae51-93-92-200-184.ngrok.io/routes").then().assertThat().statusCode(200);
-        List<Integer> sourceList = RestAssured.when().get("https://ae51-93-92-200-184.ngrok.io/routes").jsonPath().get("number");
-        String sourceList1 = RestAssured.when().get("https://ae51-93-92-200-184.ngrok.io/routes").asPrettyString();
-        System.out.println("sourceList1"+sourceList1);
-        Integer[] targetArray = sourceList.toArray(new Integer[4]);
-        Integer[] i = {100, 102, 999, 300};
-        Assert.assertArrayEquals(i,targetArray);
-        System.out.println(targetArray);
+        Response response = RestAssured.when().get("https://reqres.in/api/users?page=2");
+        response.then().assertThat().statusCode(200);
+        String total = response.jsonPath().get("total").toString();
+        System.out.println("total " + total);
+        String id10 = response.jsonPath().getJsonObject("data.id[3]").toString();
+        System.out.println("id10 " + id10);
+        String data = response.jsonPath().getJsonObject("data[3]").toString();
+        System.out.println("data " + data);
+        String first_name = response.jsonPath().getJsonObject("data[3].first_name").toString();
+        System.out.println("first_name " + first_name);
     }
 
+    @Дано("^выполнение метода GET Local Users$")
+    public void getUser() {
+        Response response = RestAssured.when().get("http://localhost:8090/api/get/users");
+        response.then().assertThat().statusCode(200);
+        String id2 = response.jsonPath().getJsonObject("id[1]").toString();
+        System.out.println("id2 " + id2);
+        String name = response.jsonPath().getJsonObject("name[1]").toString();
+        System.out.println("name " + name);
+    }
+
+    @Дано("^выполнение метода GET lotto$")
+    public void getUser1() {
+        Response response = RestAssured.when().get("http://localhost:8090/lotto/{id}", 5);
+        response.then().
+                statusCode(200).
+                body("lotto.lottoId", equalTo(5),
+                        "lotto.winners.winnerId", hasItems(23, 54));
+        System.out.println("response " + response.asPrettyString());
+    }
 
 
     @Дано("^открытие поисковика \"([^\"]*)\"$")
@@ -84,7 +102,7 @@ public class MyStepdefs extends BaseSteps {
                 getWebDriver().switchTo().window(winHandle);
             });
         }
-        BasePage page = scenario.get(pageName);
+        BasePage page = scenario.getPage(pageName);
         String pageTitle = Selenide.page(page.getClass().getAnnotation(PageEntry.class)).title();
         Assert.assertEquals("Страница не найдена " + pageName, pageName, pageTitle);
         scenario.setCurrentPage(page);
@@ -96,24 +114,34 @@ public class MyStepdefs extends BaseSteps {
         scenario.getCurrentPage().getElement(elem).sendKeys(val);
     }
 
+    @Дано("^пользователь выводит текст для локатора \"([^\"]*)\"$")
+    public void search(String elem) {
+        System.out.println(scenario.getCurrentPage().getElement(elem).getText());
+    }
+
     @Дано("^кликает по значению \"([^\"]*)\"$")
     public void clickOnPage(String value) {
         Selenide.$x("(//a[@href='https://www.ozon.ru/'])[1]").click();
 //        scenario.getCurrentPage().getElement(value).click();
+    }
 
+    @Дано("^кликает по гиперссылке с текстом \"([^\"]*)\"$")
+    public void clickOnText(String text) {
+        Selenide.$x("//*[contains(text(),'" + text + "')]/ancestor::*[@href]").click();
     }
 
     @Дано("^проверяет, что на странице содержится текст \"([^\"]*)\"$")
     public void findTextOnPage(String text) {
-        if(text.contains("\'")){
-            text = text.replace("\\'","\"");
+        if (text.contains("\'")) {
+            text = text.replace("\\'", "\"");
         }
         Selenide.$x("//*[contains(text(),'" + text + "')]").shouldBe(Condition.exist);
     }
+
     @Дано("^проверяет отсутствие текста \"([^\"]*)\"$")
     public void thereIsNoText(String text) {
-        if(text.contains("\'")){
-            text = text.replace("\\'","\"");
+        if (text.contains("\'")) {
+            text = text.replace("\\'", "\"");
         }
         Selenide.$x("//*[contains(text(),'" + text + "')]").shouldNotBe(Condition.exist);
     }
@@ -124,6 +152,11 @@ public class MyStepdefs extends BaseSteps {
 //        Selenide.actions().sendKeys(ENTER);
     }
 
+    @Дано("^пользователь проверяет, что значение поля \"([^\"]*)\" содержит \"([^\"]*)\"$")
+    public void checkValueInElement(String elem, String val) {
+        scenario.getCurrentPage().getElement(elem).shouldHave(Condition.text(val));
+    }
+
     @Дано("^пользователь ждет \"([^\"]*)\" секунд$")
     public void toWaitSeconds(String seconds) {
         Selenide.sleep(Integer.parseInt(seconds) * 1000);
@@ -132,6 +165,11 @@ public class MyStepdefs extends BaseSteps {
     @Дано("^пользователь нажимает (?:кнопку|элемент) \"([^\"]*)\"$")
     public void clickButton(String buttonName) {
         scenario.getCurrentPage().getElement(buttonName).click();
+        if (buttonName.contains("Добавить в корзину")) {
+            if (!$x("//*[@data-dy=\"buttonText\" and text()='В корзине']").exists()) {
+                scenario.getCurrentPage().getElement(buttonName).click();
+            }
+        }
     }
 
     @Дано("^во всплывающем окне Удаление товаров нажимает кнопку Удалить$")
@@ -166,7 +204,12 @@ public class MyStepdefs extends BaseSteps {
 
     @Дано("^пользователь сохраняет данные в Stash: key \"([^\"]*)\" value \"([^\"]*)\"$")
     public void savaIntoStash(String key, String value) {
-        Stash.put(key, value);
+        scenario.setVar(key, value);
+    }
+
+    @Дано("^пользователь берет данные из Stash по ключу \"([^\"]*)\"$")
+    public void getFromStash(String key) {
+        System.out.println(scenario.getVar(key).toString());
     }
 
     @Дано("^пользователь берет значение \"([^\"]*)\" клиента \"([^\"]*)\" из файла JSON$")
@@ -243,5 +286,10 @@ public class MyStepdefs extends BaseSteps {
         }
 
     }
+
+    public static void main(String[] args) {
+
+    }
+
 
 }

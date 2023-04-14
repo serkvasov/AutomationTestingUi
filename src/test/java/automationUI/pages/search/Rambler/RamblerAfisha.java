@@ -13,14 +13,14 @@ import static com.codeborne.selenide.Selenide.$x;
 public class RamblerAfisha extends BasePage {
 
     @NameOfElement(value = "Кино")
-    public SelenideElement kino = $x("//li[@class=\" menu-item\"]/a[@href=\"/msk/cinema/\"]");
+    public SelenideElement kino = $x("(//*[@href=\"/msk/cinema/\"])[1]");
 
     @NameOfElement(value = "Афиша")
     public SelenideElement ramblerAfisha = $x("(//a[@href=\"/msk/cinema/\"])[1]");
 
 
     public BasePage visiblityCheck() {
-//        $x("//a[@data-track-show=\"Afisha Logo onShow\"]").shouldBe(Condition.visible);
+        $x("//*[text()='Все развлечения Москвы']").shouldBe(Condition.visible);
         return this;
     }
 }

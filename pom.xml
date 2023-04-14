@@ -15,8 +15,6 @@
         <system.threads>1</system.threads>
 
     </properties>
-
-
             <build>
                 <plugins>
                     <plugin>

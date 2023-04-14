@@ -5,7 +5,6 @@ import com.codeborne.selenide.Selenide;
 import com.google.common.collect.Maps;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 public final class Pages {
@@ -19,10 +18,24 @@ public final class Pages {
         pages = Maps.newConcurrentMap();
     }
 
+    /**
+     * Получение страницы по классу с возможностью выполнить проверку отображения элементов страницы
+     *
+     * @param clazz                   - класс страницы, которую необходимо получить
+     * @param checkIfElementsAppeared - флаг, определяющий проверку отображения элементов на странице
+     */
+    public static <T extends BasePage> T getPage(Class<T> clazz, boolean checkIfElementsAppeared) {
+        T page = Selenide.page(clazz);
+        if (checkIfElementsAppeared) {
+            page.initialize().visiblityCheck();
+        }
+        return page;
+    }
+
     //Возвращает текущую страницу, на которой производится тестирование в текущий момент
     public BasePage getCurrentPage() {
         if (currentPage == null) throw new IllegalStateException("Текущая страница не задана");
-        return currentPage.visiblityCheck();
+        return currentPage.initialize().visiblityCheck();
     }
 
     //Задает текущую страницу по ее имени
@@ -35,24 +48,61 @@ public final class Pages {
         return Selenide.page(getPageFromPagesByName(pageName)).initialize().visiblityCheck();
     }
 
-    public BasePage getPageFromPagesByName(String pageName) throws IllegalArgumentException {
-        BasePage page = pages.get(pageName);
+    /**
+     * Получение страницы по классу
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends BasePage> T get(Class<T> clazz, String name) {
+        BasePage page = Selenide.page(getPageFromPagesByName(name)).initialize().visiblityCheck();
+
+        if (!clazz.isInstance(page)) {
+            throw new IllegalStateException(name + " page is not a instance of " + clazz + ". Named page is a " + page);
+        }
+        return (T) page;
+    }
+
+    private Map<String, BasePage> getPageMapInstanceInternal() {
+        return pages;
+    }
+
+    private BasePage getPageFromPagesByName(String pageName) throws IllegalArgumentException {
+        BasePage page = getPageMapInstanceInternal().get(pageName);
         if (page == null)
-            throw new IllegalArgumentException(String.format("<%s> страница не найдена в списке объявленных страниц.", pageName));
+            throw new IllegalArgumentException(pageName + " page is not declared in a list of available pages");
         return page;
     }
 
-    //Добавление страницы в "pages" по классу
+    /**
+     * Добавление инстанциированной страницы в "pages" с проверкой на NULL
+     */
+    public <T extends BasePage> void put(String pageName, T page) throws IllegalArgumentException {
+        if (page == null)
+            throw new IllegalArgumentException("Была передана пустая страница");
+        pages.put(pageName, page);
+    }
+
+
+    /**
+     * Добавление страницы в "pages" по классу
+     */
     public void put(String pageName, Class<? extends BasePage> page) {
         if (page == null)
             throw new IllegalArgumentException("Была передана пустая страница");
         try {
             Constructor<? extends BasePage> constructor = page.getDeclaredConstructor();
             constructor.setAccessible(true);
-            BasePage p = page.getDeclaredConstructor().newInstance();
+            BasePage p = page.newInstance();
             pages.put(pageName, p);
-        } catch (NoSuchMethodException | InstantiationException | SecurityException | IllegalAccessException | InvocationTargetException e) {
+        } catch (NoSuchMethodException | InstantiationException | SecurityException | IllegalAccessException e) {
             throw new RuntimeException("Ошибка при инициализации страницы " + pageName);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Pages{" +
+                "pages=" + pages +
+                ",currentPage=" + currentPage +
+                "}";
     }
 }

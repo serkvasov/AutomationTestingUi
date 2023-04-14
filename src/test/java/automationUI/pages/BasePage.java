@@ -39,11 +39,11 @@ public abstract class BasePage extends ElementsContainer {
 
     public abstract BasePage visiblityCheck();
 
-    @Override
-    public void setSelf(@Nonnull SelenideElement self) {
-        super.setSelf(self);
-        initialize();
-    }
+//    @Override
+//    public void setSelf(@Nonnull SelenideElement self) {
+//        super.setSelf(self);
+//        initialize();
+//    }
 
     @Nonnull
     public BasePage initialize() {

@@ -3,6 +3,7 @@ package automationUI.pages.search.Rambler;
 import automationUI.pages.BasePage;
 import automationUI.pages.system.anotations.NameOfElement;
 import automationUI.pages.system.anotations.PageEntry;
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$x;
@@ -18,7 +19,7 @@ public class ResultsRamblerSearch extends BasePage {
     public SelenideElement ramblerAfisha = $x("//h2/a[@href=\"https://www.afisha.ru/\"]");
 
     public BasePage visiblityCheck() {
-//        $x("//a[@title=\"Рамблер\"]").shouldBe(Condition.visible);
+        $x("//*[contains(@class,\"LayoutSearch__page-\")]").shouldBe(Condition.visible);
         return this;
     }
 

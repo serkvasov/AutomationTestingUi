@@ -13,13 +13,13 @@ import static com.codeborne.selenide.Selenide.$x;
 public class RamblerSearch extends BasePage {
 
     @NameOfElement(value = "Строка поиска")
-    public SelenideElement poiskRow = $x("//input[@aria-label=\"Поисковый запрос\"]");
+    public SelenideElement poiskRow = $x("//input[@name=\"query\"]");
 
     @NameOfElement(value = "Найти")
     public SelenideElement searchRambler = $x("//button[@type=\"submit\"]");
 
     public BasePage visiblityCheck() {
-        $x("//a[@title=\"Рамблер\"]").shouldBe(Condition.visible);
+        $x("//*[@id=\"main\"]").shouldBe(Condition.visible);
         return this;
     }
 }
